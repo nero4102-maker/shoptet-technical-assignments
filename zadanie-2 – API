@@ -1,1 +1,70 @@
+<?php
+
+// Načítanie raw JSON payloadu
+$input = file_get_contents("php://input");
+$data = json_decode($input, true);
+
+if (!$data) {
+http_response_code(400);
+echo json_encode([
+"status" => "error",
+"message" => "Neplatný JSON payload"
+]);
+exit;
+}
+
+$orderId = $data['order']['id'] ?? '';
+$orderCode = $data['order']['code'] ?? '';
+$createdAt = $data['order']['createdAt'] ?? '';
+$status = $data['order']['status'] ?? '';
+
+$customerName = trim(($data['order']['billingAddress']['name'] ?? '') . ' ' . ($data['order']['billingAddress']['surname'] ?? ''));
+$email = $data['order']['email'] ?? '';
+$phone = $data['order']['phone'] ?? '';
+
+$totalPrice = $data['order']['totalPrice']['withVat'] ?? 0;
+$currency = $data['order']['currency']['code'] ?? '';
+
+$paymentMethod = $data['order']['payment']['name'] ?? '';
+$deliveryMethod = $data['order']['delivery']['name'] ?? '';
+
+$productsList = [];
+if (!empty($data['order']['items'])) {
+foreach ($data['order']['items'] as $item) {
+$productName = $item['name'] ?? '';
+$quantity = $item['amount'] ?? 0;
+$sku = $item['code'] ?? '';
+
+$productsList[] = "{$productName} ({$sku}) x {$quantity}";
+}
+}
+
+$productsText = implode(", ", $productsList);
+
+$row = [
+$orderId,
+$orderCode,
+$createdAt,
+$status,
+$customerName,
+$email,
+$phone,
+$productsText,
+$totalPrice,
+$currency,
+$paymentMethod,
+$deliveryMethod
+];
+
+file_put_contents(
+"orders_log.txt",
+json_encode($row, JSON_UNESCAPED_UNICODE) . PHP_EOL,
+FILE_APPEND
+);
+
+http_response_code(200);
+echo json_encode([
+"status" => "success",
+"message" => "Objednávka spracovaná"
+]);
 
