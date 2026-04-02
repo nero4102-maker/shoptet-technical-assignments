@@ -8,8 +8,4 @@ Repo obsahuje riešenia technických zadaní.
 - Doprava zdarma text
 - Hover tlačidlo
 
-## Zadanie 3
-Debug JavaScript
 
-## Zadanie 5
-Platformové riešenia
